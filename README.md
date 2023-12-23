@@ -9,6 +9,10 @@ Welcome to the Unlikely Redemption Number Guessing Game! In this text-based mult
 
 - **Socket Programming:** Implemented client-server communication using socket programming to facilitate multiplayer interaction.
 - **Multithreading:** Utilized multithreading to handle concurrent connections from multiple prisoners, ensuring a seamless and responsive gaming experience.
+- **Programming Language:** Developed the game using Python 3.12.1
+- **Algorithm Design:** Implemented efficient algorithms for number generation, player interaction, and game logic.
+- **Documentation:** Provided clear and concise documentation for code, making it accessible for contributors and users.
+
 
 
 ## How to Play
