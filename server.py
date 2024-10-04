@@ -13,29 +13,19 @@ print(f"Escape-key = {escape_key}  (won't be visible to the client)")
 
 
 # Configuration for Socket Connection
-HEADER = 64                # Number of bytes for the header, specifying the message length
-PORT = 5050                # Port to bind the server socket
-SERVER = socket.gethostbyname(socket.gethostname()) 
-# print(socket.gethostbyname(socket.gethostname()))
-# SERVER = "192.168.1.13"  # IPv4 address, uncomment and replace if needed
-ADDR = (SERVER, PORT)
+HEADER = 64                                             # Number of bytes for the header, specifying the message length
+PORT = 5050                                             # Port to bind the server socket
+SERVER = socket.gethostbyname(socket.gethostname())     # Get the local machine's IP address
+ADDR = (SERVER, PORT)                                   # Tuple containing IP address and port
+FORMAT = 'utf-8'                                        # Encoding format for messages
 
-FORMAT = 'utf-8'           # Encoding format for messages
 SUCCESS = "You won the game."
 LOST = "You lost the game."
 END = "Game ended !!!"
 
+# Create a socket object and bind it to the server
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
-
-def send(msg, conn):
-    message = msg.encode(FORMAT)
-    msg_length = len(message)
-    send_length = str(msg_length).encode(FORMAT)
-    send_length += b' ' * (HEADER - len(send_length))
-    conn.send(send_length)
-    conn.send(message)
-
 
 # Function to handle each connected client
 def handle_client(conn, addr):
@@ -60,26 +50,18 @@ def handle_client(conn, addr):
             msg = conn.recv(msg_length).decode(FORMAT)
             msg = int(msg)
             
-            # If client takes more than 5 guesses, they will lose the game
             guess += 1
-            # if guess == 5:
-            #     print(f"{name} lost the game in {guess} guesses.")
-            #     conn.send("You lost the game.".encode(FORMAT).ljust(HEADER))
-            #     conn.close()
-            #     break
             
             print(f"[{name}] guessed {msg}")
             if msg == escape_key:
                 print(f"{name} won the game in {guess} guesses.")
                 print(f"{name} escaped")
                 conn.send(SUCCESS.encode(FORMAT).ljust(HEADER))
-                # conn.close()
                 won = True
                 break
             elif guess == attemptes_allowed:
                 print(f"{name} lost the game in {guess} guesses.")
                 conn.send(LOST.encode(FORMAT).ljust(HEADER))
-                # conn.close()
                 break
             elif (msg > escape_key):
                 conn.send("The value is too high".encode(FORMAT).ljust(HEADER))
@@ -90,29 +72,14 @@ def handle_client(conn, addr):
                 if msg > lower_bound:
                     lower_bound = msg
 
-    # if msg == escape_key:
-    #     print(f"{name} won the game in {guess} guesses.")
-    #     conn.send("You won the game.".encode(FORMAT).ljust(HEADER))
-    #     print(f"{name} escaped")
     if(won):
-        wonP[guess] = [name, conn]
+        wonP[name] = [guess, conn]
     players[name] = [guess, conn]
     activeP -= 1
-    # active = threading.active_count() - 2
-    # conn.join()
-    # activeP = threading.active_count() - 1
+    
     print(f"[ACTIVE PLAYERS] = {activeP}")
     if(currentP == totP and activeP == 0):
         end_game()
-    
-    # if currentP == totP:
-    #     if active == 0:
-    #         esc = list(players.keys())
-    #         esc.sort()
-    #         sorted_p = {i: players[i] for i in esc}
-    #         print(f"Players escaped in this order {sorted_p}")
-    #         print("[ESCAPE COMPLETE] Game ended !!!")
-    #         conn.send(END.encode(FORMAT).ljust(HEADER))
 
 # Function to start the server and listen for incoming connections
 def start():
@@ -128,6 +95,7 @@ def start():
         print(f"[ACTIVE PLAYERS] = {threading.active_count() - 1}") 
         print(f"Total players entered the game = {currentP}")
 
+# Function to end the game and send the results to the players
 def end_game():
     esc = list(wonP.keys())
     esc.sort()
@@ -138,6 +106,10 @@ def end_game():
     for i in players:
         conn = players[i][1]
         conn.send(END.encode(FORMAT).ljust(HEADER))
+        if i in wonP:
+            conn.send(f"Congratulations {i}, you escaped in {players[i][0]} guesses".encode(FORMAT).ljust(HEADER))
+        else:
+            conn.send(f"Sorry {i}, you couldn't escape".encode(FORMAT).ljust(HEADER))
         conn.close()
     
     server.close()

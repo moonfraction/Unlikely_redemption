@@ -26,10 +26,10 @@ def send(msg):
     client.send(message)
 
 guess = 0
-print(client.recv(HEADER).decode(FORMAT))  # Receive and print the initial message from the server
+print(client.recv(HEADER).decode(FORMAT))  # Receive and print the initial message from the server to enter the player's name
 client.send(input("My Name-> ").encode(FORMAT))  # Send the player's name to the server
 
-# Loop to receive hints and send guesses to the server
+# Loop to receive hints, send guesses to the server and receive results
 while True:    
     hint = client.recv(HEADER).decode(FORMAT)
     print(hint.strip())
@@ -50,5 +50,6 @@ while True:
     # Check if the game has officially ended
     if end_wait == END:
         print(END)
+        print(client.recv(HEADER).decode(FORMAT).strip())
         client.close()  # Close the client socket
         break
